@@ -1,42 +1,87 @@
 #pragma once
-#ifndef JIPPVECTOR_H
-#define JIPPVECTOR_H
+#ifndef JIPP_VECTOR_H
+#define JIPP_VECTOR_H
+
+#include <algorithm>
+#include <stdexcept>
 
 using namespace std;
+
+class VectorException : public std::exception {
+public:
+	const char* what() const noexcept override {
+		return "Vector exception occurred";
+	}
+};
+
+class OutOfRangeException : public VectorException {
+public:
+	const char* what() const noexcept override {
+		return "Index out of range";
+	}
+};
+
+class EmptyVectorException : public VectorException {
+public:
+	const char* what() const noexcept override {
+		return "Operation on empty vector";
+	}
+};
 
 template <typename T>
 class JippVector
 {
 private:
-
-public:
 	T* data;
 	int size;
 	int capacity;
 
+public:
 	JippVector() {
 		data = nullptr;
 		capacity = size = 0;
 	}
 
-	explicit JippVector(const size_t& capacity) {
+	explicit JippVector(const int& capacity) {
 		data = new T[capacity];
 		this->capacity = capacity;
 		this->size = 0;
 	}
 
+	JippVector(const JippVector& other) {
+		size = other.size;
+		capacity = other.capacity;
+		data = new T[capacity];
+
+		for (int i = 0; i < size; i++) {
+			data[i] = other.data[i];
+		}
+	}
+
 	~JippVector() {
 		delete[] data;
+	}
+	
+	JippVector& operator=(const JippVector& rhs) = delete;
+
+	T& operator[](const int& index) {
+		if (index < 0 || index >= size) {
+			throw OutOfRangeException();
+		}
+		return data[index];
 	}
 
 	void reserve(const int& val) {
 		if (capacity < val) {
-			int lenOldData = sizeof(data) / sizeof(data[0]);
-			capacity = val;
-			T* tempData = new T[capacity];
-			copy(data, data + min(lenOldData, capacity), tempData);
+			T* temp = new T[val];
+
+			for (int i = 0; i < size; i++) {
+				temp[i] = data[i];
+			}
+
 			delete[] data;
-			data = tempData;
+			data = temp;
+			capacity = val;
 		}
 	}
 
@@ -47,14 +92,104 @@ public:
 	}
 
 	void fill(const int& start, const int& len, const int& val) {
+		if (start < 0 || start + len > size) {
+			throw OutOfRangeException();
+		}
+
 		for (int i = start; i < start + len; i++) {
 			data[i] = val;
 		}
 	}
 
-	void pushBack(const int& val) {
-		
+	void pushBack(const T& val) {
+		if (size == capacity) {
+			reserve(max(1, capacity * 2));
+		}
+		data[size++] = val;
 	}
-};
 
-#endif // JIPPVECTOR_H
+	void pushFront(const T& val) {
+		if (isEmpty()) {
+			throw EmptyVectorException();
+		}
+
+		if (size == capacity) {
+			reserve(max(1, capacity * 2));
+		}
+
+		for (size_t i = size; i > 0; i--)
+		{
+			data[i] = data[i - 1];
+		}
+
+		data[0] = val;
+		size++;
+	}
+
+	void insert(const int& index, const T& val) {
+		if (index < 0 || index > size) {
+			throw OutOfRangeException();
+		} else if (size == capacity) {
+			reserve(capacity * 2);
+		}
+
+		for (int i = size; i > index; i--) {
+			data[i] = data[i - 1];
+		}
+		data[index] = val;
+		size++;
+	}
+
+	void erase(const int& index) {
+		if (index < 0 || index >= size) {
+			throw OutOfRangeException();
+		}
+
+		for (int i = index; i < size - 1; i++) {
+			data[i] = data[i + 1];
+		}
+
+		size--;
+	}
+
+	void erase(int index, int len) {
+		if (index < 0 || index + len > size) {
+			throw OutOfRangeException();
+		}
+		for (int i = index; i < size - len; i++) {
+			data[i] = data[i + len];
+		}
+		size -= len;
+	}
+
+	void shrinkToFit() {
+		if (isEmpty()) {
+			throw EmptyVectorException();
+		}
+
+		if (capacity > size) {
+			T* temp = new T[size];
+			for (int i = 0; i < size; i++) {
+				temp[i] = data[i];
+			}
+			delete[] data;
+			data = temp;
+			capacity = size;
+		}
+	}
+
+	//TODO zmieniæ na size() ewentualnie sie dopytac prowadzacego
+	int getSize() {
+		return size;
+	}
+
+	//TODO zmieniæ na capacity() ewentualnie sie dopytac prowadzacego
+	int getCapacity() {
+		return capacity;
+	}
+
+	bool isEmpty() {
+		return size == 0;
+	}
+}; 
+#endif //JIPP_VECTOR_H
