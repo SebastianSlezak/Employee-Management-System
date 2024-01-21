@@ -2,8 +2,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <typeinfo>
 
 #include "Employee.h"
+
+using namespace std;
 
 void addEmployee(JippVector<Employee>& employees) {
     string name, surname;
@@ -80,8 +83,42 @@ void displayEmployees(const JippVector<Employee>& employees) {
     }
 }
 
-void loadFromFile(JippVector<Employee>& employees, const string& filename) {}
-void saveToFile(const JippVector<Employee>& employees, const string& filename) {}
+void saveToFile(const JippVector<Employee>& employees, const string& filename) {
+ ofstream file(filename, ios::binary);
+    if (!file) {
+        cout << "Unable to open file for writing." << endl;
+        return;
+    }
+
+    for (int i = 0; i < employees.getSize(); ++i) {
+        file.write(reinterpret_cast<const char*>(&employees[i]), sizeof(Employee));
+    }
+
+    file.close();
+    cout << "Data saved to file." << endl;     
+}
+
+void loadFromFile(JippVector<Employee>& employees, const string& filename) {
+    ifstream file(filename, ios::binary);
+    if (!file) {
+        cout << "Unable to open file for reading." << endl;
+        return;
+    }
+
+    while (!employees.isEmpty()) {
+        employees.erase(0);
+    }
+
+    Employee temp("", "", 0, 0.0f);
+    while (file.read(reinterpret_cast<char*>(&temp), sizeof(Employee))) {
+        employees.pushBack(temp);
+    }
+
+    file.close();
+    cout << "Data loaded from file." << endl;
+}
+
+
 
 int main() {
     JippVector<Employee> employees;
@@ -98,17 +135,23 @@ int main() {
         cout << "7. Exit" << endl;
         cout << "Enter your choice: " << endl;
 
-        cin >> choice;
-
-        switch (choice) {
-        case 1: addEmployee(employees); break;
-        case 2: editEmployee(employees); break;
-        case 3: deleteEmployee(employees); break;
-        case 4: displayEmployees(employees); break;
-        case 5: saveToFile(employees, "employees.dat"); break;
-        case 6: loadFromFile(employees, "employees.dat"); break;
-        case 7: running = false; break;
-        default: cout << "Invalid choice!\n";
+        //cin >> choice;
+        
+        if (cin >> choice) {
+            switch (choice) {
+            case 1: addEmployee(employees); break;
+            case 2: editEmployee(employees); break;
+            case 3: deleteEmployee(employees); break;
+            case 4: displayEmployees(employees); break;
+            case 5: saveToFile(employees, "employees.dat"); break;
+            case 6: loadFromFile(employees, "employees.dat"); break;
+            case 7: running = false; break;
+            default: cout << "Invalid choice!" << endl;
+            }
+        } else {
+            cout << "Invalid input. Please enter a number." << endl;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
     }
 
