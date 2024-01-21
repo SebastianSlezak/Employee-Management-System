@@ -27,6 +27,9 @@ public:
     void loadFromFile(JippVector<Employee>& employees, const string& filename);
     void saveToFile(const JippVector<Employee>& employees, const string& filename);
     void displayRange(const JippVector<Employee>& employees);
+    void insertEmployee(JippVector<Employee>& employees);
+    float calculateTotalSalary(const JippVector<Employee>& employees);
+    void searchBySurname(const JippVector<Employee>& employees);
 };
 
 #endif //EMPLOYEE_H
