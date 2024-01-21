@@ -118,7 +118,25 @@ void loadFromFile(JippVector<Employee>& employees, const string& filename) {
     cout << "Data loaded from file." << endl;
 }
 
+void displayRange(const JippVector<Employee>& employees) {
+    int start, end;
 
+    cout << "Enter start: ";
+    cin >> start;
+
+    cout << "Enter end: ";
+    cin >> end;
+
+    if (start < 0 || end >= employees.getSize() || start > end) {
+        cout << "Invalid range!" << endl;
+        return;
+    }
+
+    for (int i = start; i <= end; ++i) {
+        cout << "Employee " << i << ": " << employees[i].name << " " << employees[i].surname;
+        cout << ", ID: " << employees[i].id << ", Salary: " << employees[i].salary << endl;
+    }
+}
 
 int main() {
     JippVector<Employee> employees;
@@ -132,7 +150,8 @@ int main() {
         cout << "4. Display Employees" << endl;
         cout << "5. Save to File" << endl;
         cout << "6. Load from File" << endl;
-        cout << "7. Exit" << endl;
+        cout << "7. Display items from a specific range" << endl;
+        cout << "8. Exit" << endl;
         cout << "Enter your choice: " << endl;
 
         //cin >> choice;
@@ -145,7 +164,8 @@ int main() {
             case 4: displayEmployees(employees); break;
             case 5: saveToFile(employees, "employees.dat"); break;
             case 6: loadFromFile(employees, "employees.dat"); break;
-            case 7: running = false; break;
+            case 7: displayRange(employees); break;
+            case 8: running = false; break;
             default: cout << "Invalid choice!" << endl;
             }
         } else {

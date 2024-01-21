@@ -26,6 +26,7 @@ public:
     void displayEmployees(const JippVector<Employee>& employees);
     void loadFromFile(JippVector<Employee>& employees, const string& filename);
     void saveToFile(const JippVector<Employee>& employees, const string& filename);
+    void displayRange(const JippVector<Employee>& employees);
 };
 
 #endif //EMPLOYEE_H
