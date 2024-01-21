@@ -7,7 +7,7 @@
 
 using namespace std;
 
-class VectorException : public std::exception {
+class VectorException : public exception {
 public:
 	const char* what() const noexcept override {
 		return "Vector exception occurred";
@@ -38,16 +38,25 @@ private:
 
 public:
 	JippVector() {
-		data = nullptr;
-		capacity = size = 0;
+		try {
+			data = nullptr;
+			capacity = size = 0;
+		} catch (const exception& e) {
+			throw VectorException();
+		}
 	}
 
 	explicit JippVector(const int& capacity) {
-		data = new T[capacity];
-		this->capacity = capacity;
-		this->size = 0;
+		try {
+			data = new T[capacity];
+			this->capacity = capacity;
+			this->size = 0;
+		} catch (const bad_alloc& e) {
+			throw VectorException();
+		}
 	}
 
+	//copy constructor
 	JippVector(const JippVector& other) {
 		size = other.size;
 		capacity = other.capacity;
@@ -64,24 +73,28 @@ public:
 	
 	JippVector& operator=(const JippVector& rhs) = delete;
 
-	T& operator[](const int& index) {
+	const T& operator[](const int& index) const {
 		if (index < 0 || index >= size) {
 			throw OutOfRangeException();
 		}
 		return data[index];
 	}
 
-	void reserve(const int& val) {
-		if (capacity < val) {
-			T* temp = new T[val];
+	void reserve(const int& val) {	 
+		try {
+			if (val > capacity) {
+				T* temp = new T[val];
 
-			for (int i = 0; i < size; i++) {
-				temp[i] = data[i];
+				for (int i = 0; i < size; i++) {
+					temp[i] = data[i];
+				}
+
+				delete[] data;
+				data = temp;
+				capacity = val;
 			}
-
-			delete[] data;
-			data = temp;
-			capacity = val;
+		} catch (const bad_alloc&) {
+			throw VectorException();
 		}
 	}
 
@@ -102,10 +115,15 @@ public:
 	}
 
 	void pushBack(const T& val) {
-		if (size == capacity) {
-			reserve(max(1, capacity * 2));
+		try {
+			if (size == capacity) {
+				reserve(max(1, capacity * 2));
+			}
+			data[size++] = val;
+		} catch (const VectorException&) {
+			throw; // Re-throwing exception from reserve
 		}
-		data[size++] = val;
+		
 	}
 
 	void pushFront(const T& val) {
@@ -113,17 +131,22 @@ public:
 			throw EmptyVectorException();
 		}
 
-		if (size == capacity) {
-			reserve(max(1, capacity * 2));
-		}
+		try {
+			if (size == capacity) {
+				reserve(max(1, capacity * 2));
+			}
 
-		for (size_t i = size; i > 0; i--)
-		{
-			data[i] = data[i - 1];
-		}
+			for (size_t i = size; i > 0; i--)
+			{
+				data[i] = data[i - 1];
+			}
 
-		data[0] = val;
-		size++;
+			data[0] = val;
+			size++;
+		} catch (const VectorException&) {
+			throw;  // Re-throwing exception from reserve
+		}
+		
 	}
 
 	void insert(const int& index, const T& val) {
@@ -167,19 +190,24 @@ public:
 			throw EmptyVectorException();
 		}
 
-		if (capacity > size) {
-			T* temp = new T[size];
-			for (int i = 0; i < size; i++) {
-				temp[i] = data[i];
+		try {
+			if (capacity > size) {
+				T* temp = new T[size];
+				for (int i = 0; i < size; i++) {
+					temp[i] = data[i];
+				}
+				delete[] data;
+				data = temp;
+				capacity = size;
 			}
-			delete[] data;
-			data = temp;
-			capacity = size;
+		} catch (const bad_alloc&) {
+			throw VectorException();
 		}
+		
 	}
 
 	//TODO zmieniæ na size() ewentualnie sie dopytac prowadzacego
-	int getSize() {
+	int getSize() const {
 		return size;
 	}
 
@@ -188,7 +216,7 @@ public:
 		return capacity;
 	}
 
-	bool isEmpty() {
+	bool isEmpty() const {
 		return size == 0;
 	}
 }; 
