@@ -46,10 +46,10 @@ public:
 		}
 	}
 
-	explicit JippVector(const int& capacity) {
+	explicit JippVector(const int& _capacity) {
 		try {
-			data = new T[capacity];
-			this->capacity = capacity;
+			data = new T[_capacity];
+			this->_capacity = _capacity;
 			this->_size = 0;
 		} catch (const bad_alloc& e) {
 			throw VectorException();
