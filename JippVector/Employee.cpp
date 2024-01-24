@@ -25,7 +25,8 @@ void addEmployee(JippVector<Employee>& employees) {
 
         employees.pushBack(Employee(name, surname, id, salary));
         cout << "Employee added successfully." << endl;
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -64,7 +65,8 @@ void editEmployee(JippVector<Employee>& employees) {
 
         employees.insert(index, Employee(name, surname, id, salary));
         cout << "Employee edited successfully." << endl;
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
     }
 }
@@ -81,7 +83,8 @@ void deleteEmployee(JippVector<Employee>& employees) {
 
         employees.erase(index);
         cout << "Employee deleted successfully." << endl;
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
     }
 }
@@ -89,13 +92,14 @@ void deleteEmployee(JippVector<Employee>& employees) {
 void displayEmployees(const JippVector<Employee>& employees) {
     try {
         for (int i = 0; i < employees.size(); ++i) {
-            cout << "Employee " << i << ": " << employees[i].name << " " << employees[i].surname;
-            cout << ", ID: " << employees[i].id << ", Salary: " << employees[i].salary << endl;
+            cout << "Employee " << i << ": " << employees[i].getName() << " " << employees[i].getSurname();
+            cout << ", ID: " << employees[i].getId() << ", Salary: " << employees[i].getSalary() << endl;
         }
         if (employees.isEmpty()) {
             cout << "No employees to display." << endl;
         }
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
     }
 }
@@ -109,39 +113,79 @@ void saveToFile(const JippVector<Employee>& employees, const string& filename) {
         }
 
         for (int i = 0; i < employees.size(); ++i) {
-            file.write(reinterpret_cast<const char*>(&employees[i]), sizeof(Employee));
+
+            size_t nameLength = employees[i].getName().length();
+            size_t surnameLength = employees[i].getSurname().length();
+
+            file.write(reinterpret_cast<const char*>(&nameLength), sizeof(nameLength));
+            file.write(employees[i].getName().c_str(), nameLength);
+            file.write(reinterpret_cast<const char*>(&surnameLength), sizeof(surnameLength));
+            file.write(employees[i].getSurname().c_str(), surnameLength);
+
+            int id = employees[i].getId();
+            float salary = employees[i].getSalary();
+
+            file.write(reinterpret_cast<const char*>(&id), sizeof(id));
+            file.write(reinterpret_cast<const char*>(&salary), sizeof(salary));
         }
 
         file.close();
         cout << "Data saved to file." << endl;
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
     }
 }
+
 
 void loadFromFile(JippVector<Employee>& employees, const string& filename) {
-    try {
-        ifstream file(filename, ios::binary);
-        if (!file) {
-            cout << "Unable to open file for reading." << endl;
-            return;
-        }
-
-        while (!employees.isEmpty()) {
-            employees.erase(0);
-        }
-
-        Employee temp("", "", 0, 0.0f);
-        while (file.read(reinterpret_cast<char*>(&temp), sizeof(Employee))) {
-            employees.pushBack(temp);
-        }
-
-        file.close();
-        cout << "Data loaded from file." << endl;
-    } catch (const exception& e) {
-        cout << "Error: " << e.what() << endl;
+    ifstream file(filename, ios::binary);
+    if (!file) {
+        cout << "Unable to open file for reading." << endl;
+        return;
     }
+
+    while (file) {
+        size_t nameLength, surnameLength;
+        int id;
+        float salary;
+
+        if (!file.read(reinterpret_cast<char*>(&nameLength), sizeof(nameLength))) {
+            break;
+        }
+
+        string name(nameLength, '\0');
+        if (!file.read(&name[0], nameLength)) {
+            break;
+        }
+
+        if (!file.read(reinterpret_cast<char*>(&surnameLength), sizeof(surnameLength))) {
+            break;
+        }
+
+        string surname(surnameLength, '\0');
+        if (!file.read(&surname[0], surnameLength)) {
+            break;
+        }
+
+        if (!file.read(reinterpret_cast<char*>(&id), sizeof(id))) {
+            break;
+        }
+
+        if (!file.read(reinterpret_cast<char*>(&salary), sizeof(salary))) {
+            break;
+        }
+
+        employees.pushBack(Employee(name, surname, id, salary));
+    }
+
+    file.close();
+    cout << "Data loaded from file." << endl;
 }
+
+
+
+
 
 void displayRange(const JippVector<Employee>& employees) {
     try {
@@ -159,10 +203,11 @@ void displayRange(const JippVector<Employee>& employees) {
         }
 
         for (int i = start; i <= end; ++i) {
-            cout << "Employee " << i << ": " << employees[i].name << " " << employees[i].surname;
-            cout << ", ID: " << employees[i].id << ", Salary: " << employees[i].salary << endl;
+            cout << "Employee " << i << ": " << employees[i].getName() << " " << employees[i].getSurname();
+            cout << ", ID: " << employees[i].getId() << ", Salary: " << employees[i].getSalary() << endl;
         }
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
     }
 }
@@ -205,10 +250,11 @@ float calculateTotalSalary(const JippVector<Employee>& employees) {
 
         float total = 0.0f;
         for (int i = start; i <= end; ++i) {
-            total += employees[i].salary;
+            total += employees[i].getSalary();
         }
         return total;
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
         return 0;
     }
@@ -222,9 +268,9 @@ void searchBySurname(const JippVector<Employee>& employees) {
         cin >> surname;
 
         for (int i = 0; i < employees.size(); ++i) {
-            if (employees[i].surname == surname) {
-                cout << "Employee " << i << ": " << employees[i].name << " " << employees[i].surname;
-                cout << ", ID: " << employees[i].id << ", Salary: " << employees[i].salary << endl;
+            if (employees[i].getSurname() == surname) {
+                cout << "Employee " << i << ": " << employees[i].getName() << " " << employees[i].getSurname();
+                cout << ", ID: " << employees[i].getId() << ", Salary: " << employees[i].getSalary() << endl;
             }
         }
     }
@@ -252,7 +298,7 @@ int main() {
         cout << "11. Display size of container" << endl;
         cout << "12. Exit" << endl;
         cout << "Enter your choice: " << endl;
-        
+
 
         if (cin >> choice) {
             switch (choice) {

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
 
 #include "JippVector.h"
 #include <iostream>
@@ -9,16 +7,33 @@
 using namespace std;
 
 class Employee {
-public:
+private:
     string name;
     string surname;
     int id;
     float salary;
 
+public:
     Employee() : name(""), surname(""), id(0), salary(0.0f) {}
 
     Employee(string name, string surname, int id, float salary)
         : name(name), surname(surname), id(id), salary(salary) {}
+
+    string getName() const {
+        return name;
+    }
+
+    string getSurname() const {
+        return surname;
+    }
+
+    int getId() const {
+        return id;
+    }
+
+    float getSalary() const {
+        return salary;
+    }
 
     void addEmployee(JippVector<Employee>& employees);
     void editEmployee(JippVector<Employee>& employees);
@@ -31,5 +46,3 @@ public:
     float calculateTotalSalary(const JippVector<Employee>& employees);
     void searchBySurname(const JippVector<Employee>& employees);
 };
-
-#endif //EMPLOYEE_H
